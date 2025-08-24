@@ -27,6 +27,12 @@ Session::Session(tcp::socket socket, int session_id, weak_ptr<DataHandler> data_
     memset(data_, 0, sizeof(data_));
     // 글로벌 구조에서는 세션 생성시점에 마지막 pong 시간 초기화!
     last_alive_time_ = std::chrono::steady_clock::now();
+
+    auto& exec = socket_.get_executor();
+    AppContext::instance().logger->info("[DEBUG] Executor 사용 중인 io_context 주소: {}", (void*)&exec.context());
+
+    AppContext::instance().logger->info("[DEBUG] Session 생성자 완료: session_id={}, strand_ is running={}",
+        session_id_, strand_.running_in_this_thread());
 }
 
 Session::~Session() {
@@ -36,6 +42,7 @@ Session::~Session() {
 }
 
 void Session::start() {
+    AppContext::instance().logger->info("[TRACK] Session::start() 진입, session_id={}", session_id_);
     do_read();
     start_login_timeout();    // 타이머 시작 추가!
 }
@@ -45,10 +52,12 @@ int Session::get_session_id() const {
 }
 
 void Session::post_task(std::function<void()> fn) {
+    AppContext::instance().logger->info("[TRACK] post_task() 호출됨, session_id={}", session_id_);
     auto self = shared_from_this();
     //std::cout << "[DEBUG] post_task called (session_id=" << session_id_ << ")" << std::endl;
     boost::asio::dispatch(strand_, [this, self, fn = std::move(fn)]() mutable {
         //std::cout << "[DEBUG] task enqueued" << std::endl;
+        AppContext::instance().logger->info("[DEBUG] strand 내부 진입: session_id={}", session_id_);
         if (task_queue_.size() >= static_cast<size_t>(AppContext::instance().config.value("max_task_queue", 1000))) {
             //std::cerr << "[WARN] task_queue_ overflow! (session_id=" << session_id_ << ")\n";
             //LOG_WARN("[WARN] task_queue_ overflow! (session_id=", session_id_);
@@ -175,47 +184,47 @@ void Session::on_nickname_registered() {
     login_timer_.cancel(); // 인수 제거하여 타이머 취소  
 }
 
-void Session::reset(boost::asio::ip::tcp::socket&& new_socket, int session_id) {
-    boost::system::error_code ec;
-
-    // (1) 기존 소켓 비동기 작업 모두 취소 및 안전하게 닫기
-    if (socket_.is_open()) {
-        socket_.cancel(ec);
-        socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
-        socket_.close(ec);
-    }
-
-    // (2) 새 소켓 move 할당
-    socket_ = std::move(new_socket);
-
-    // (3) strand, 타이머 등 재할당 (필수)
-    strand_ = boost::asio::make_strand(socket_.get_executor());
-    login_timer_ = boost::asio::steady_timer(strand_);
-
-    // (4) 내부 상태 모두 초기화
-    session_id_ = session_id;
-    nickname_.clear();
-    line_buffer_.clear();
-    message_.clear();
-    memset(data_, 0, sizeof(data_));
-
-    closed_ = false;
-    read_pending_ = false;
-    task_running_ = false;
-    while (!task_queue_.empty()) task_queue_.pop();
-    while (!write_queue_.empty()) write_queue_.pop();
-
-    set_state(SessionState::Handshaking);   // 초기 상태
-
-    last_alive_time_ = std::chrono::steady_clock::now();
-    nickname_registered_ = false;
-
-    msg_buf_mgr_.clear();
-
-    generation_.fetch_add(1, std::memory_order_relaxed);
-
-    AppContext::instance().logger->info("[Session][reset] 세션 {} 내부 상태 초기화 완료", session_id_);
-}
+//void Session::reset(boost::asio::ip::tcp::socket&& new_socket, int session_id) {
+//    boost::system::error_code ec;
+//
+//    // (1) 기존 소켓 비동기 작업 모두 취소 및 안전하게 닫기
+//    if (socket_.is_open()) {
+//        socket_.cancel(ec);
+//        socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+//        socket_.close(ec);
+//    }
+//
+//    // (2) 새 소켓 move 할당
+//    socket_ = std::move(new_socket);
+//
+//    // (3) strand, 타이머 등 재할당 (필수)
+//    strand_ = boost::asio::make_strand(socket_.get_executor());
+//    login_timer_ = boost::asio::steady_timer(strand_);
+//
+//    // (4) 내부 상태 모두 초기화
+//    session_id_ = session_id;
+//    nickname_.clear();
+//    line_buffer_.clear();
+//    message_.clear();
+//    memset(data_, 0, sizeof(data_));
+//
+//    closed_ = false;
+//    read_pending_ = false;
+//    task_running_ = false;
+//    while (!task_queue_.empty()) task_queue_.pop();
+//    while (!write_queue_.empty()) write_queue_.pop();
+//
+//    set_state(SessionState::Handshaking);   // 초기 상태
+//
+//    last_alive_time_ = std::chrono::steady_clock::now();
+//    nickname_registered_ = false;
+//
+//    msg_buf_mgr_.clear();
+//
+//    generation_.fetch_add(1, std::memory_order_relaxed);
+//
+//    AppContext::instance().logger->info("[Session][reset] 세션 {} 내부 상태 초기화 완료", session_id_);
+//}
 
 
 
@@ -294,6 +303,7 @@ void Session::close_session() {
 
 void Session::do_read() 
 {
+    AppContext::instance().logger->info("[TRACK] do_read() 진입, session_id={}", get_session_id());
     auto self = shared_from_this();
     // [1] 중복 read 방지!
     if (get_state() == SessionState::Closed) {
@@ -322,10 +332,17 @@ void Session::do_read()
                         // 2. 여러 메시지 추출 및 처리
                         while (auto opt_msg = get_msg_buffer().extract_message()) {
                             try {
-                                json msg = json::parse(*opt_msg);
+                                //json msg = json::parse(*opt_msg);
 
+                                AppContext::instance().logger->info("[DEBUG] Received JSON raw: {}", *opt_msg);
+                                // 파싱 성공한 JSON 객체 로그 (보기 좋게 indent 적용)
+                                //AppContext::instance().logger->info("[DEBUG] Parsed JSON object: {}", msg.dump(2));
+
+                                //if (auto handler = data_handler_.lock()) {
+                                //    handler->dispatch(self, msg);  // 바로 이렇게!
+                                //}
                                 if (auto handler = data_handler_.lock()) {
-                                    handler->dispatch(self, msg);  // 바로 이렇게!
+                                    handler->dispatch(self, *opt_msg); // std::string (raw packet)
                                 }
                             }
                             catch (const exception& e) {

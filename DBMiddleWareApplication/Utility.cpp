@@ -5,6 +5,7 @@
 #include "Logger.h"
 #include <cstdlib>
 #include "AppContext.h"
+#include <fstream>
 
 void send_admin_alert(const std::string& message) {
     static const char* slack_webhook_url = "https://hooks.slack.com/services/XXX/YYY/ZZZ"; // 본인 슬랙 URL로 교체
@@ -42,4 +43,16 @@ std::string get_env_secret(const std::string& env_name) {
     if (!val) return "";
     return std::string(val);
 #endif
+}
+
+void load_config(const std::string& filename) {
+    std::ifstream in(filename);
+
+    if (!in.is_open()) {
+        AppContext::instance().config = nlohmann::json::object(); // fallback
+        throw std::runtime_error("config 파일 오픈 실패: " + filename);
+    }
+    else {
+        AppContext::instance().config = nlohmann::json::parse(in);
+    }
 }

@@ -44,7 +44,8 @@ public:
     DataHandler(const DataHandler&) = delete;
     DataHandler& operator=(const DataHandler&) = delete;
 
-    void dispatch(const std::shared_ptr<Session>& session, const json& msg);
+    //void dispatch(const std::shared_ptr<Session>& session, const json& msg);
+    void  dispatch(const std::shared_ptr<Session>& session, const std::string& packet);
     // TCP 세션 관리 
     // 세션 추가
     void add_session(int session_id, std::shared_ptr<Session> session);

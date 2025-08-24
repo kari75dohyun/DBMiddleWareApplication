@@ -22,11 +22,15 @@ DataHandler::DataHandler(boost::asio::io_context& io, std::shared_ptr<SessionMan
     session_manager_(session_manager),
     cleanup_timer_(io) {
     start_monitor_loop();    // 모니터 루프 시작
-	start_cleanup_loop();    // session 클린업 타이머 시작
+	//start_cleanup_loop();    // session 클린업 타이머 시작
 }
 
-void DataHandler::dispatch(const std::shared_ptr<Session>& session, const json& msg) {
-    dispatcher_.dispatch(session, msg);
+//void DataHandler::dispatch(const std::shared_ptr<Session>& session, const json& msg) {
+//    dispatcher_.dispatch(session, msg);
+//}
+
+void  DataHandler::dispatch(const std::shared_ptr<Session>& session, const std::string& packet) {
+    dispatcher_.dispatch(session, packet);
 }
 
 void DataHandler::add_session(int session_id, std::shared_ptr<Session> session) {
@@ -37,6 +41,12 @@ void DataHandler::add_session(int session_id, std::shared_ptr<Session> session) 
 void DataHandler::remove_session(int session_id) {
     // 1. SessionManager에서 제거하면서 세션 반환받기
     auto session = session_manager_->remove_session(session_id);
+
+    if (!session) {
+        AppContext::instance().logger->warn("[DataHandler] remove_session: session {} not found (already removed)", session_id);
+        return;
+    }
+
     // 3. 반환받은 세션을 세션 풀로 반환 (락 범위 밖에서 안전하게)
     //if (session) {
     //    auto pool = get_session_pool();

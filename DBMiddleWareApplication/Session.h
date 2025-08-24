@@ -111,7 +111,7 @@ public:
     void post_write(std::shared_ptr<std::string> msg); // 새 버전
 
     // Session 재설정 함수
-    void reset(boost::asio::ip::tcp::socket&& socket, int session_id);
+    //void reset(boost::asio::ip::tcp::socket&& socket, int session_id);
 
     void start_login_timeout();            // 닉네임 타이머 시작
     void on_nickname_registered();         // 닉네임 등록 완료 콜백

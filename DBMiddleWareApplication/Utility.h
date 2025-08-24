@@ -44,3 +44,5 @@ inline std::optional<nlohmann::json> try_parse_json(const std::string& msg) {
 }
 
 std::string get_env_secret(const std::string& env_name);
+
+void load_config(const std::string& path = "config.json");
