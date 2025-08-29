@@ -43,7 +43,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -104,14 +104,23 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>C:\Users\fireg\Downloads\vcpkg-2025.04.09\installed\x64-windows\include;C:\Program Files\MySQL\MySQL Connector C++ 9.4\include\jdbc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\fireg\Downloads\vcpkg-2025.04.09\installed\x64-windows\include;C:\Program Files\MySQL\MySQL Connector C++ 8.0\include\jdbc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ShowIncludes>true</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\fireg\Downloads\vcpkg-2025.04.09\installed\x64-windows\lib;C:\Program Files\MySQL\MySQL Connector C++ 9.4\lib64\vs14;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ws2_32.lib;crypt32.lib;libcurl.lib;fmt.lib;mysqlcppconn.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\fireg\Downloads\vcpkg-2025.04.09\installed\x64-windows\lib;C:\Program Files\MySQL\MySQL Connector C++ 8.0\lib64\vs14;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ws2_32.lib;crypt32.lib;mysqlcppconn.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -123,14 +132,22 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>C:\Users\fireg\Downloads\vcpkg-2025.04.09\installed\x64-windows\include;C:\Program Files\MySQL\MySQL Connector C++ 9.4\include\jdbc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\fireg\Downloads\vcpkg-2025.04.09\installed\x64-windows\include;C:\Program Files\MySQL\MySQL Connector C++ 8.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\fireg\Downloads\vcpkg-2025.04.09\installed\x64-windows\lib;C:\Program Files\MySQL\MySQL Connector C++ 9.4\lib64\vs14;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ws2_32.lib;crypt32.lib;libcurl.lib;fmt.lib;mysqlcppconn.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\fireg\Downloads\vcpkg-2025.04.09\installed\x64-windows\lib;C:\Program Files\MySQL\MySQL Connector C++ 8.0\lib64\vs14;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ws2_32.lib;crypt32.lib;mysqlcppconn8.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AllowedIPManager.cpp" />
@@ -163,4 +180,31 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <!-- 내가 보관해 둘 OpenSSL DLL 경로(프로젝트 안에 넣어두세요) -->
+  <PropertyGroup Label="PinnedOpenSsl">
+    <!-- 원하는 폴더로 바꿔도 됨 -->
+    <PinnedOpenSslDir>$(ProjectDir)third_party\openssl\8.0\</PinnedOpenSslDir>
+  </PropertyGroup>
+  <!-- 내 OpenSSL DLL 목록 -->
+  <ItemGroup>
+    <PinnedOpenSslDll Include="$(PinnedOpenSslDir)libcrypto-1_1-x64.dll" />
+    <PinnedOpenSslDll Include="$(PinnedOpenSslDir)libssl-1_1-x64.dll" />
+  </ItemGroup>
+  <!-- 1) vcpkg가 DLL 복사한 '후'에 OpenSSL 두 개만 제거 -->
+  <Target Name="RemoveOpenSslDlls" AfterTargets="VcpkgCopyDlls;VcpkgCopyDllsAfterBuild;CopyFilesToOutputDirectory">
+    <Message Text="RemoveOpenSslDlls: deleting vcpkg OpenSSL from $(OutDir)" Importance="high" />
+    <ItemGroup>
+      <_ToRemove Include="$(OutDir)libcrypto-1_1-x64.dll" />
+      <_ToRemove Include="$(OutDir)libssl-1_1-x64.dll" />
+      <!-- 혹시 TargetDir을 쓰는 설정일 대비 -->
+      <_ToRemove Include="$(TargetDir)libcrypto-1_1-x64.dll" />
+      <_ToRemove Include="$(TargetDir)libssl-1_1-x64.dll" />
+    </ItemGroup>
+    <Delete Files="@(_ToRemove)" ContinueOnError="true" />
+  </Target>
+  <!-- 2) 반드시 '삭제 후' 내 고정 DLL을 마지막에 복사 -->
+  <Target Name="CopyPinnedOpenSslDlls" AfterTargets="RemoveOpenSslDlls">
+    <Message Text="CopyPinnedOpenSslDlls: copying pinned OpenSSL to $(OutDir)" Importance="high" />
+    <Copy SourceFiles="@(PinnedOpenSslDll)" DestinationFolder="$(OutDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" />
+  </Target>
 </Project>

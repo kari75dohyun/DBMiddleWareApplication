@@ -1,35 +1,45 @@
 ﻿#pragma once
-#include <cppconn/driver.h>
-#include <cppconn/connection.h>
-#include <cppconn/prepared_statement.h>
-#include <mutex>
-#include <condition_variable>
-#include <queue>
-#include <memory>
+
 #include <string>
-#include <functional>
+#include <memory>
+#include <mutex>
+#include <queue>
+
+// MySQL Connector/C++ 8.x (X DevAPI)
+#include <mysqlx/xdevapi.h>
 
 class MySqlPool {
 public:
-    using ConnPtr = std::unique_ptr<sql::Connection, std::function<void(sql::Connection*)>>;
-
-    MySqlPool(const std::string& url,
+    MySqlPool(const std::string& host,
+        unsigned int port,
         const std::string& user,
         const std::string& pass,
         const std::string& schema,
         size_t pool_size);
+    ~MySqlPool();
 
-    ConnPtr acquire(); // 자동 반환되는 RAII 핸들
-    size_t size();
+    // 복사/이동 금지
+    MySqlPool(const MySqlPool&) = delete;
+    MySqlPool& operator=(const MySqlPool&) = delete;
+    MySqlPool(MySqlPool&&) = delete;
+    MySqlPool& operator=(MySqlPool&&) = delete;
+
+    // 세션 빌림/반납
+    std::unique_ptr<mysqlx::Session> acquire();
+    void release(std::unique_ptr<mysqlx::Session> session);
+
 private:
-    void create_one_unlocked();
+    std::unique_ptr<mysqlx::Session> new_connection();
+
+private:
+    // 연결 정보
+    std::string host_;
+    unsigned int port_;
+    std::string user_;
+    std::string pass_;
+    std::string schema_;
+    size_t      capacity_ = 0;
 
     std::mutex mtx_;
-    std::condition_variable cv_;
-    std::queue<sql::Connection*> pool_;
-
-    sql::Driver* driver_;
-    std::string url_, user_, pass_, schema_;
-    size_t capacity_;
+    std::queue<std::unique_ptr<mysqlx::Session>> pool_;
 };
-
