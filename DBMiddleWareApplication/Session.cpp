@@ -44,7 +44,7 @@ Session::~Session() {
 void Session::start() {
     AppContext::instance().logger->info("[TRACK] Session::start() 진입, session_id={}", session_id_);
     do_read();
-    start_login_timeout();    // 타이머 시작 추가!
+    //start_login_timeout();    // 타이머 시작 추가!
 }
 
 int Session::get_session_id() const {
@@ -319,7 +319,7 @@ void Session::do_read()
     post_task([this, self]() {
         auto& strand = get_strand();
         get_socket().async_read_some(
-            buffer(get_data(), sizeof(get_data())),
+            buffer(get_data(), sizeof(data_)),
             boost::asio::bind_executor(strand, [this, self](const boost::system::error_code& ec, size_t length) {
                 // [2] 콜백 진입 시 반드시 해제!
                 release_read();

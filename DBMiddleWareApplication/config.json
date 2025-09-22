@@ -17,6 +17,5 @@
   "user_limit_per_sec": 10,
   "total_limit_per_sec": 1000,
   "max_zone_count": 10,
-  "max_udp_queue_size": 10000,
   "max_zone_session_count": 500
 }

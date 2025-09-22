@@ -139,6 +139,7 @@ public:
     std::string state_to_string() const {
         switch (state_) {
         case SessionState::Handshaking: return "Handshaking";
+		case SessionState::Handshaked: return "Handshaked";
         case SessionState::LoginWait: return "LoginWait";
         case SessionState::Ready: return "Ready";
         case SessionState::Closed: return "Closed";
