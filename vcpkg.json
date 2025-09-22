@@ -1,0 +1,13 @@
+{
+  "name": "db-middleware",
+  "version-string": "1.0.0",
+  "dependencies": [
+    "mysql-connector-cpp",
+    "spdlog",
+    "nlohmann-json",
+    "protobuf",
+    "boost-asio",
+    "curl"
+  ],
+  "builtin-baseline": "9824d05f8d9548720ba3331f4baba3e2d6c1693b"
+}
