@@ -13,6 +13,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="소스 파일\proto">
+      <UniqueIdentifier>{9fa6a28e-a5ec-4b0b-a401-03a452c5db77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\generated">
+      <UniqueIdentifier>{21f4273f-0513-401c-b2d8-4b790b05bef9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\generated">
+      <UniqueIdentifier>{1a0a4a70-704c-4b09-9d1b-1fcdea2b7a3b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DBMiddleWareApplication.cpp">
@@ -50,6 +59,9 @@
     </ClCompile>
     <ClCompile Include="MysqlPool.cpp">
       <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="generated\wire.pb.cc">
+      <Filter>소스 파일\generated</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -89,5 +101,13 @@
     <ClInclude Include="MysqlPool.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="generated\wire.pb.h">
+      <Filter>헤더 파일\generated</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="proto\wire.proto">
+      <Filter>소스 파일\proto</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

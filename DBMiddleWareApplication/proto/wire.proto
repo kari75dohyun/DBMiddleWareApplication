@@ -1,0 +1,14 @@
+﻿syntax = "proto3";
+package wire;
+
+message Login { string nickname = 1; }
+message KeepAlive {}
+message Insert { string table = 1; map<string,string> values = 2; }
+
+message Envelope {
+  oneof payload {
+    Login login = 1;
+    KeepAlive keepalive = 2;
+    Insert insert = 3;
+  }
+}

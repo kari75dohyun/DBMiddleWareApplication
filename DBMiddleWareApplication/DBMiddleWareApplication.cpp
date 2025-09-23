@@ -9,6 +9,7 @@
 #include "Utility.h"
 #include "AppContext.h"
 #include "MySqlPool.h"
+#include "generated/wire.pb.h"
 
 using namespace std;
 using boost::asio::ip::tcp;
