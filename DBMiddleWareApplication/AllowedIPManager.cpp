@@ -16,7 +16,7 @@ bool AllowedIPManager::load(const std::string& filepath) {
         // 앞뒤 공백 트림(공백만 있으면 스킵)
         const char* ws = " \t\r\n";
         auto first = line.find_first_not_of(ws);
-        if (first == std::string::npos) continue;  // 전부 공백 → 무시
+        if (first == std::string::npos) continue;  // 전부 공백 -> 무시
         auto last = line.find_last_not_of(ws);
         line.erase(last + 1);
         line.erase(0, first);

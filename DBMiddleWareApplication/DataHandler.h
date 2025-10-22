@@ -30,7 +30,7 @@ private:
 
     std::shared_ptr<SessionManager> session_manager_; // SessionManager 멤버 추가
 
-    std::unordered_map<std::string, std::weak_ptr<Session>> nickname_to_session_;  // 닉네임→세션
+    std::unordered_map<std::string, std::weak_ptr<Session>> nickname_to_session_;  // 닉네임->세션
     std::mutex nickname_mutex_; // 닉네임 맵 보호용
 
     boost::asio::steady_timer monitor_timer_; // 모니터링 타이머

@@ -85,7 +85,7 @@ void Session::run_next_task() {
     fn();  // 비동기 작업 진입, 콜백 마지막에 run_next_task() 호출!
 }
 
-// (1) post_write(기존 string용 → shared_ptr 버전으로 변환해서 호출)
+// (1) post_write(기존 string용 -> shared_ptr 버전으로 변환해서 호출)
 void Session::post_write(const std::string& msg) {
     post_write(std::make_shared<std::string>(msg));
 }
